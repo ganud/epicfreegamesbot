@@ -6,6 +6,14 @@ module.exports = {
     .setName("free")
     .setDescription("Replies with Pong!"),
   async execute(interaction) {
-    await interaction.reply("Pong!");
+    fetchGames().then((games) => interaction.reply(games));
   },
 };
+
+async function fetchGames() {
+  const freeGames = await getFreeGames();
+  const url = freeGames[0].url;
+  return url;
+}
+
+fetchGames().then((walter) => console.log(walter));
