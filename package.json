@@ -1,24 +1,14 @@
 {
   "name": "epicfreegamesbot",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node ."
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "ganud",
   "license": "ISC",
   "description": "",
-  "type": "module",
-  "devDependencies": {
-    "@types/node": "^20.12.11",
-    "jest": "^29.7.0",
-    "tsx": "^4.10.1"
-  },
   "dependencies": {
-    "discord.js": "^14.15.2",
-    "dotenv": "^16.4.5"
+    "discord.js": "^14.15.2"
   }
 }

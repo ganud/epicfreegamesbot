@@ -1,17 +1,40 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const json = require("./freegames.json");
-
-function getFreeGames() {
+async function getFreeGames() {
   // Querys only discounted games,
-  const filtered = json.data.Catalog.searchStore.elements.filter(
+  const response = await fetch(
+    "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions",
+    { mode: "cors" }
+  );
+  const json = await response.json();
+  const filtered = await json.data.Catalog.searchStore.elements.filter(
     (element) =>
       element.price.totalPrice.discountPrice === 0 &&
       element.offerType !== "OTHERS" &&
       element.offerType !== "ADD_ON"
   );
+  const queried = await filtered.map((element) => [
+    {
+      url: getUrl(element),
+      timeStamp: getTimeStamp(element),
+      title: element.title,
+      price: element.price.totalPrice.originalPrice,
+    },
+  ]);
+  return queried[0];
+  // const filtered = json.data.Catalog.searchStore.elements.filter(
+  //   (element) =>
+  //     element.price.totalPrice.discountPrice === 0 &&
+  //     element.offerType !== "OTHERS" &&
+  //     element.offerType !== "ADD_ON"
+  // );
 
-  return filtered.map((element) => [getUrl(element)]);
+  // return filtered.map((element) => [
+  //   {
+  //     url: getUrl(element),
+  //     timeStamp: getTimeStamp(element),
+  //     title: element.title,
+  //     price: element.price.totalPrice.originalPrice,
+  //   },
+  // ]);
 }
 
 function getUrl(element) {
@@ -28,4 +51,4 @@ function getTimeStamp(element) {
   return `<t:${epoch}:R>`;
 }
 
-console.log(getFreeGames());
+module.exports = { getFreeGames };
