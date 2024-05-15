@@ -17,31 +17,17 @@ async function getFreeGames() {
       timeStamp: getTimeStamp(element),
       title: element.title,
       price: element.price.totalPrice.originalPrice,
+      thumbnail: element.keyImages[0].url,
     },
   ]);
   return queried[0];
-  // const filtered = json.data.Catalog.searchStore.elements.filter(
-  //   (element) =>
-  //     element.price.totalPrice.discountPrice === 0 &&
-  //     element.offerType !== "OTHERS" &&
-  //     element.offerType !== "ADD_ON"
-  // );
-
-  // return filtered.map((element) => [
-  //   {
-  //     url: getUrl(element),
-  //     timeStamp: getTimeStamp(element),
-  //     title: element.title,
-  //     price: element.price.totalPrice.originalPrice,
-  //   },
-  // ]);
 }
 
 function getUrl(element) {
   if (element.catalogNs.mappings[0] === undefined) {
     return false;
   }
-  return `https://store.epicgames.com/p/${element.catalogNs.mappings[0].pageSlug}`;
+  return `https://epicgames.com/p/${element.catalogNs.mappings[0].pageSlug}`;
 }
 
 // Converts ISO-8601 to epoch

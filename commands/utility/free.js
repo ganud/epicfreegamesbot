@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { getFreeGames } = require("../../getFreeGames");
 
 module.exports = {
@@ -6,14 +6,30 @@ module.exports = {
     .setName("free")
     .setDescription("Replies with Pong!"),
   async execute(interaction) {
-    fetchGames().then((games) => interaction.reply(games));
+    const games = await getFreeGames();
+    for (let i = 0; i < games.length; i++) {
+      const embed = createEmbed(games[i]);
+      interaction.reply({ embeds: [embed] });
+    }
   },
 };
 
-async function fetchGames() {
-  const freeGames = await getFreeGames();
-  const url = freeGames[0].url;
-  return url;
-}
+function createEmbed(game) {
+  const embed = new EmbedBuilder()
+    .setTitle(game.title)
+    .setURL(game.url)
+    .addFields({
+      name: game.timeStamp,
+      value: "💰 ~~$19.99~~ ➜ Free!",
+      inline: false,
+    })
+    .setImage(game.thumbnail)
+    .setColor("#00b7ff")
+    .setFooter({
+      text: "EpicFreeGames",
+      iconURL: "https://slate.dan.onl/slate.png",
+    })
+    .setTimestamp();
 
-fetchGames().then((walter) => console.log(walter));
+  return embed;
+}
