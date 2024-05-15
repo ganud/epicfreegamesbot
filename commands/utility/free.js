@@ -8,8 +8,9 @@ module.exports = {
   async execute(interaction) {
     const games = await getFreeGames();
     for (let i = 0; i < games.length; i++) {
-      const embed = createEmbed(games[i]);
-      interaction.reply({ embeds: [embed] });
+      // Post embed for every valid game
+      const embed = createEmbed(games[i][0]);
+      interaction.channel.send({ embeds: [embed] });
     }
   },
 };
@@ -20,7 +21,7 @@ function createEmbed(game) {
     .setURL(game.url)
     .addFields({
       name: game.timeStamp,
-      value: "💰 ~~$19.99~~ ➜ Free!",
+      value: `💰 ~~$${game.price}~~ ➜ Free!`,
       inline: false,
     })
     .setImage(game.thumbnail)
