@@ -2,6 +2,7 @@ A discord that gets free games from the Epic Games Store and posts them to a cha
 
 ![alt text](https://i.imgur.com/TvhueSd.png)
 ![alt text](https://i.imgur.com/pOF15qZ.png)
+
 Commentary:\
 I had this idea about 2 years ago, but I had no idea what I was doing back then(Python + Replit on the web!?!?). I half made this in a weekend to curb my regrets with my current knowledge and due to feeling inconvenienced by the other Epic Free Games bot coaxing me to vote to set notifications.
 
