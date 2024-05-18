@@ -19,7 +19,7 @@ async function getFreeGames() {
       thumbnail: element.keyImages[0].url,
     },
   ]);
-  return queried.filter((game) => game[0].url !== false);
+  return queried.filter((game) => game[0].url !== false); // Remove rest of non-games(e.g Epic test game)
 }
 
 function getUrl(element) {
