@@ -6,7 +6,9 @@ async function getFreeGames() {
   );
   const json = await response.json();
   const filtered = await json.data.Catalog.searchStore.elements.filter(
-    (element) => element.price.totalPrice.discountPrice === 0
+    (element) =>
+      element.price.totalPrice.discountPrice === 0 &&
+      element.offerType !== "ADD_ON"
   );
   const queried = await filtered.map((element) => [
     {
@@ -21,19 +23,32 @@ async function getFreeGames() {
 }
 
 function getUrl(element) {
-  if (element.catalogNs.mappings[0] === undefined) {
+  let urlEnd = false;
+  if (element.catalogNs.mappings[0] !== undefined) {
+    urlEnd = element.catalogNs.mappings[0].pageSlug;
+  } else if (
+    element.productSlug !== null ||
+    !Array.isArray(element.productSlug)
+  ) {
+    urlEnd = element.productSlug;
+  }
+  if (urlEnd === false || urlEnd === "[]") {
+    // For some reason an empty productSlug array is a string
     return false;
   }
-  return `https://epicgames.com/p/${element.catalogNs.mappings[0].pageSlug}`;
+  return `https://epicgames.com/p/${urlEnd}`;
 }
 
 // Converts ISO-8601 to epoch
 function getTimeStamp(element) {
-  if (element.price.lineOffers[0].appliedRules[0] === undefined) {
-    return false;
+  let endDate = false;
+  if (element.price.lineOffers[0].appliedRules[0] !== undefined) {
+    endDate = element.price.lineOffers[0].appliedRules[0].endDate;
+  } else if (element.promotions.promotionalOffers[0] !== undefined) {
+    endDate =
+      element.promotions.promotionalOffers[0].promotionalOffers[0].endDate;
   }
-  let epoch =
-    Date.parse(element.price.lineOffers[0].appliedRules[0].endDate) / 1000;
+  let epoch = Date.parse(endDate) / 1000;
   return `<t:${epoch}:R>`;
 }
 

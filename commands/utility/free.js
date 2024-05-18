@@ -4,9 +4,10 @@ const { getFreeGames } = require("../../getFreeGames");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("free")
-    .setDescription("Replies with Pong!"),
+    .setDescription("Get current free games"),
   async execute(interaction) {
     const games = await getFreeGames();
+    interaction.reply(`${games.length} free games this week.`);
     for (let i = 0; i < games.length; i++) {
       // Post embed for every valid game
       const embed = createEmbed(games[i][0]);
