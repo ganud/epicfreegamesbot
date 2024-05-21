@@ -10,7 +10,8 @@
   "description": "",
   "dependencies": {
     "discord.js": "^14.15.2",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "jest": "^29.7.0",

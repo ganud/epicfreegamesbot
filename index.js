@@ -3,6 +3,17 @@ const path = require("node:path");
 const { Client, Collection, Events, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const sqlite3 = require("sqlite3").verbose();
+const { postGames } = require("./postGames");
+const schedule = require("node-schedule");
+
+const db = new sqlite3.Database(
+  "./settings.db",
+  sqlite3.OPEN_READWRITE,
+  (err) => {
+    if (err) return console.error(err.message);
+  }
+);
 // Setup boilerplate from https://discordjs.guide/
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
@@ -39,6 +50,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   try {
     await command.execute(interaction);
+
+    const guildId = client.guilds.cache.map((g) => g.id)[0];
+
+    // Re-update scheduler after every setchannel
+    if (interaction.commandName === "setchannel") {
+      db.all(
+        `SELECT * FROM settings WHERE guild_id='${guildId}'`,
+        [],
+        (err, rows) => {
+          if (err) return console.error(err.message);
+          schedule.cancelJob();
+          schedule.scheduleJob("10 15 * * 4", function () {
+            // Post games every Thursday, 15:10 UTC
+            postGames(client, interaction.channelId);
+          });
+        }
+      );
+    }
   } catch (error) {
     console.error(error);
     if (interaction.replied || interaction.deferred) {
@@ -57,6 +86,27 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+  const guildId = client.guilds.cache.map((g) => g.id)[0];
+
+  db.all(
+    `SELECT * FROM settings WHERE guild_id='${guildId}'`,
+    [],
+    (err, rows) => {
+      if (err) return console.error(err.message);
+      // If guild does not exist add guild
+      if (rows.length === 0) {
+        db.run(`INSERT INTO settings(guild_id) VALUES ('${guildId}')`);
+      } else {
+        // Check for saved channel
+        if (rows[0].channel_id !== null) {
+          schedule.scheduleJob("10 15 * * 4", function () {
+            // Post games every Thursday, 15:10 UTC
+            postGames(client, rows[0].channel_id);
+          });
+        }
+      }
+    }
+  );
 });
 
 client.login(token);

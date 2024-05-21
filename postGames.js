@@ -17,12 +17,16 @@ function createEmbed(game) {
 }
 
 // Send all free games into a channel
-async function postGames(interaction) {
+async function postGames(interaction, channelId = false) {
   const games = await getFreeGames();
   for (let i = 0; i < games.length; i++) {
     // Post embed for every valid game
     const embed = createEmbed(games[i][0]);
-    interaction.channel.send({ embeds: [embed] });
+    if (channelId === false) {
+      interaction.channel.send({ embeds: [embed] });
+    } else {
+      interaction.channels.cache.get(channelId).send({ embeds: [embed] }); // If client is used instead
+    }
   }
 }
 
