@@ -53,6 +53,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const guildId = interaction.guildId;
 
+    // Cancel schedule when removechannel is run
+    if (interaction.commandName === "removechannel") {
+      for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
+      console.log("cancelleds");
+    }
+
     // Re-update scheduler after every setchannel
     if (interaction.commandName === "setchannel") {
       db.all(
@@ -60,7 +66,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         [],
         (err, rows) => {
           if (err) return console.error(err.message);
-          schedule.cancelJob();
+          for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
           // Post games every Thursday, 15:10 UTC
           schedule.scheduleJob("10 15 * * 4", function () {
             // Ping a role if it exists
@@ -104,7 +110,6 @@ client.once(Events.ClientReady, async (readyClient) => {
         } else {
           // Check for saved channel if exists
           if (rows[0].channel_id !== null) {
-            schedule.cancelJob();
             // Post games every Thursday, 15:10 UTC
             schedule.scheduleJob("10 15 * * 4", function () {
               // Ping a role if it exists

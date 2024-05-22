@@ -11,8 +11,8 @@ const db = new sqlite3.Database(
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setchannel")
-    .setDescription("Set which channel to send game notifications at"),
+    .setName("removechannel")
+    .setDescription("Remove this channel from being notified"),
   async execute(interaction) {
     // Must have manage server permissions to run command
     if (
@@ -34,13 +34,13 @@ module.exports = {
       (err, rows) => {
         if (err) return console.error(err.message);
         db.run(
-          `UPDATE settings SET channel_id='${channelId}' WHERE guild_id='${guildId}'`
+          `UPDATE settings SET channel_id=null WHERE guild_id='${guildId}'`
         );
       }
     );
 
     interaction.reply({
-      content: `Now posting games in <#${channelId}>`,
+      content: `Stopped posting games in <#${channelId}>`,
       ephemeral: true,
     });
   },

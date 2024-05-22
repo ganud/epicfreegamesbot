@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
 const sqlite3 = require("sqlite3").verbose();
-
 const db = new sqlite3.Database(
   "./settings.db",
   sqlite3.OPEN_READWRITE,
@@ -11,8 +10,8 @@ const db = new sqlite3.Database(
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setchannel")
-    .setDescription("Set which channel to send game notifications at"),
+    .setName("test")
+    .setDescription("Ping the role and channel saved in the server"),
   async execute(interaction) {
     // Must have manage server permissions to run command
     if (
@@ -26,22 +25,16 @@ module.exports = {
     }
 
     const guildId = interaction.guildId;
-    const channelId = interaction.channel.id;
-
     db.all(
       `SELECT * FROM settings WHERE guild_id='${guildId}'`,
       [],
       (err, rows) => {
         if (err) return console.error(err.message);
-        db.run(
-          `UPDATE settings SET channel_id='${channelId}' WHERE guild_id='${guildId}'`
-        );
+        interaction.reply({
+          content: `Now pinging <@&${rows[0].role_id}> in <#${rows[0].channel_id}>`,
+          ephemeral: true,
+        });
       }
     );
-
-    interaction.reply({
-      content: `Now posting games in <#${channelId}>`,
-      ephemeral: true,
-    });
   },
 };

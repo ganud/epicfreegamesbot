@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
 const sqlite3 = require("sqlite3").verbose();
 
 const db = new sqlite3.Database(
@@ -12,7 +12,7 @@ const db = new sqlite3.Database(
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("setrole")
-    .setDescription("Set which channel to ping when notified!")
+    .setDescription("Set which role I should ping!")
     .addStringOption((option) =>
       option
         .setName("role")
@@ -20,12 +20,25 @@ module.exports = {
         .setRequired(true)
     ),
   async execute(interaction) {
+    // Must have manage server permissions to run command
+    if (
+      !interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)
+    ) {
+      interaction.reply({
+        content: "You do not have the permissions to run this command.",
+        ephemeral: true,
+      });
+      return;
+    }
+
     const guildId = interaction.guildId;
     const input = interaction.options.getString("role");
     // Query role with user input
     const role = interaction.member.roles.cache.find((r) => r.name === input);
     if (role === undefined) {
-      interaction.reply("No matching role found");
+      interaction.reply(
+        "No matching role found. (Role must be assigned first to be pinged!)"
+      );
       return;
     }
 
@@ -41,6 +54,9 @@ module.exports = {
       }
     );
 
-    interaction.reply(`Now pinging the role ${input}`);
+    interaction.reply({
+      content: `Now pinging the role <@&${role.id}>!`,
+      ephemeral: true,
+    });
   },
 };
