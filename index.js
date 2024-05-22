@@ -7,6 +7,8 @@ const sqlite3 = require("sqlite3").verbose();
 const { postGames } = require("./postGames");
 const schedule = require("node-schedule");
 
+// 10 15 * * 4
+
 const db = new sqlite3.Database(
   "./settings.db",
   sqlite3.OPEN_READWRITE,
@@ -56,7 +58,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // Cancel schedule when removechannel is run
     if (interaction.commandName === "removechannel") {
       for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
-      console.log("cancelleds");
     }
 
     // Re-update scheduler after every setchannel
@@ -68,13 +69,40 @@ client.on(Events.InteractionCreate, async (interaction) => {
           if (err) return console.error(err.message);
           for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
           // Post games every Thursday, 15:10 UTC
-          schedule.scheduleJob("10 15 * * 4", function () {
+          schedule.scheduleJob("*/5 * * * * *", function () {
             // Ping a role if it exists
             if (rows[0].role_id !== null) {
               interaction.channel.send("<@&" + rows[0].role_id + ">");
             }
             postGames(client, interaction.channelId);
           });
+        }
+      );
+    }
+
+    // Same for removerole and setrole, but it must check for a saved channel first
+    if (
+      interaction.commandName === "removerole" ||
+      interaction.commandName === "setrole"
+    ) {
+      db.all(
+        `SELECT * FROM settings WHERE guild_id='${guildId}'`,
+        [],
+        (err, rows) => {
+          if (err) return console.error(err.message);
+          for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
+          // Post games every Thursday, 15:10 UTC
+          if (rows[0].channel_id !== null) {
+            schedule.scheduleJob("*/5 * * * * *", function () {
+              // Ping a role if it exists
+              if (interaction.role_id !== null) {
+                client.channels.cache
+                  .get(rows[0].channel_id)
+                  .send("<@&" + interaction.role_id + ">");
+              }
+              postGames(client, rows[0].channel_id);
+            });
+          }
         }
       );
     }
@@ -111,7 +139,7 @@ client.once(Events.ClientReady, async (readyClient) => {
           // Check for saved channel if exists
           if (rows[0].channel_id !== null) {
             // Post games every Thursday, 15:10 UTC
-            schedule.scheduleJob("10 15 * * 4", function () {
+            schedule.scheduleJob("*/5 * * * * *", function () {
               // Ping a role if it exists
               if (rows[0].role_id !== null) {
                 client.channels.cache

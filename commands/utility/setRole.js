@@ -54,6 +54,8 @@ module.exports = {
       }
     );
 
+    interaction.role_id = role.id; // Pass role_id to index.js because sql doesn't update in time
+
     interaction.reply({
       content: `Now pinging the role <@&${role.id}>!`,
       ephemeral: true,
