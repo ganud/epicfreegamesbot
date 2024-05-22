@@ -5,7 +5,9 @@ module.exports = {
     .setName("free")
     .setDescription("Get current free games"),
   async execute(interaction) {
-    interaction.reply("Games this week:");
-    postGames(interaction);
+    await interaction.deferReply();
+    await postGames(interaction);
+    await interaction.editReply("Games this week:");
+    await interaction.deleteReply();
   },
 };

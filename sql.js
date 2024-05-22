@@ -9,7 +9,7 @@ const db = new sqlite3.Database(
   }
 );
 // db.run("INSERT INTO settings(guild_id) VALUES ('803823557670600754')");
-// db.run("DELETE FROM settings");
+db.run("DELETE FROM settings WHERE id=24");
 
 // db.run(sql, ["1224"], (err, rows) => {
 //   if (err) return console.error(err.message);

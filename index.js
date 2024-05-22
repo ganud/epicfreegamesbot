@@ -9,11 +9,15 @@ const schedule = require("node-schedule");
 
 const db = new sqlite3.Database(
   "./settings.db",
-  sqlite3.OPEN_READWRITE,
+  sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
   (err) => {
     if (err) return console.error(err.message);
+    db.run(
+      `create table if not exists settings(id INTEGER PRIMARY KEY,guild_id, channel_id, role_id )`
+    );
   }
 );
+
 // Setup boilerplate from https://discordjs.guide/
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
