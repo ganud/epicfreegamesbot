@@ -7,8 +7,6 @@ const sqlite3 = require("sqlite3").verbose();
 const { postGames } = require("./postGames");
 const schedule = require("node-schedule");
 
-// 10 15 * * 4
-
 const db = new sqlite3.Database(
   "./settings.db",
   sqlite3.OPEN_READWRITE,
@@ -69,7 +67,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           if (err) return console.error(err.message);
           for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
           // Post games every Thursday, 15:10 UTC
-          schedule.scheduleJob("*/5 * * * * *", function () {
+          schedule.scheduleJob("10 15 * * 4", function () {
             // Ping a role if it exists
             if (rows[0].role_id !== null) {
               interaction.channel.send("<@&" + rows[0].role_id + ">");
@@ -93,7 +91,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
           // Post games every Thursday, 15:10 UTC
           if (rows[0].channel_id !== null) {
-            schedule.scheduleJob("*/5 * * * * *", function () {
+            schedule.scheduleJob("10 15 * * 4", function () {
               // Ping a role if it exists
               if (interaction.role_id !== null) {
                 client.channels.cache
@@ -139,7 +137,7 @@ client.once(Events.ClientReady, async (readyClient) => {
           // Check for saved channel if exists
           if (rows[0].channel_id !== null) {
             // Post games every Thursday, 15:10 UTC
-            schedule.scheduleJob("*/5 * * * * *", function () {
+            schedule.scheduleJob("10 15 * * 4", function () {
               // Ping a role if it exists
               if (rows[0].role_id !== null) {
                 client.channels.cache
