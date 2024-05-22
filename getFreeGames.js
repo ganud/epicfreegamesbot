@@ -1,25 +1,30 @@
 async function getFreeGames() {
   // Querys only discounted games,
-  const response = await fetch(
-    "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions",
-    { mode: "cors" }
-  );
-  const json = await response.json();
-  const filtered = await json.data.Catalog.searchStore.elements.filter(
-    (element) =>
-      element.price.totalPrice.discountPrice === 0 &&
-      element.offerType !== "ADD_ON"
-  );
-  const queried = await filtered.map((element) => [
-    {
-      url: getUrl(element),
-      timeStamp: getTimeStamp(element),
-      title: element.title,
-      price: element.price.totalPrice.originalPrice,
-      thumbnail: element.keyImages[0].url,
-    },
-  ]);
-  return queried.filter((game) => game[0].url !== false); // Remove rest of non-games(e.g Epic test game)
+  try {
+    const response = await fetch(
+      "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions",
+      { mode: "cors" }
+    );
+    const json = await response.json();
+    const filtered = await json.data.Catalog.searchStore.elements.filter(
+      (element) =>
+        element.price.totalPrice.discountPrice === 0 &&
+        element.offerType !== "ADD_ON"
+    );
+    const queried = await filtered.map((element) => [
+      {
+        url: getUrl(element),
+        timeStamp: getTimeStamp(element),
+        title: element.title,
+        price: element.price.totalPrice.originalPrice,
+        thumbnail: element.keyImages[0].url,
+      },
+    ]);
+    return queried.filter((game) => game[0].url !== false);
+  } catch (error) {
+    console.log(error);
+  }
+  // Remove rest of non-games(e.g Epic test game)
 }
 
 function getUrl(element) {
