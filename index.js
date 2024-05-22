@@ -51,7 +51,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   try {
     await command.execute(interaction);
 
-    const guildId = client.guilds.cache.map((g) => g.id)[0];
+    const guildId = interaction.guildId;
 
     // Re-update scheduler after every setchannel
     if (interaction.commandName === "setchannel") {
@@ -61,8 +61,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         (err, rows) => {
           if (err) return console.error(err.message);
           schedule.cancelJob();
+          // Post games every Thursday, 15:10 UTC
           schedule.scheduleJob("10 15 * * 4", function () {
-            // Post games every Thursday, 15:10 UTC
+            // Ping a role if it exists
+            if (rows[0].role_id !== null) {
+              interaction.channel.send("<@&" + rows[0].role_id + ">");
+            }
             postGames(client, interaction.channelId);
           });
         }
@@ -84,29 +88,38 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-  const guildId = client.guilds.cache.map((g) => g.id)[0];
-
-  db.all(
-    `SELECT * FROM settings WHERE guild_id='${guildId}'`,
-    [],
-    (err, rows) => {
-      if (err) return console.error(err.message);
-      // If guild does not exist add guild
-      if (rows.length === 0) {
-        db.run(`INSERT INTO settings(guild_id) VALUES ('${guildId}')`);
-      } else {
-        // Check for saved channel
-        if (rows[0].channel_id !== null) {
-          schedule.scheduleJob("10 15 * * 4", function () {
+  const guildIds = client.guilds.cache.map((g) => g.id);
+  // Check for any saved data in guilds and schedule accordingly
+  guildIds.forEach((guildId) => {
+    db.all(
+      `SELECT * FROM settings WHERE guild_id='${guildId}'`,
+      [],
+      (err, rows) => {
+        if (err) return console.error(err.message);
+        // If guild does not exist add guild
+        if (rows.length === 0) {
+          db.run(`INSERT INTO settings(guild_id) VALUES ('${guildId}')`);
+        } else {
+          // Check for saved channel if exists
+          if (rows[0].channel_id !== null) {
+            schedule.cancelJob();
             // Post games every Thursday, 15:10 UTC
-            postGames(client, rows[0].channel_id);
-          });
+            schedule.scheduleJob("10 15 * * 4", function () {
+              // Ping a role if it exists
+              if (rows[0].role_id !== null) {
+                client.channels.cache
+                  .get(rows[0].channel_id)
+                  .send("<@&" + rows[0].role_id + ">");
+              }
+              postGames(client, rows[0].channel_id);
+            });
+          }
         }
       }
-    }
-  );
+    );
+  });
 });
 
 client.login(token);
