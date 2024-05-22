@@ -18,3 +18,10 @@ Configuring notifications requires manage server permissions
 - Set role to be pinged along with the channel notification -> /setrole
 - /removerole and /removechannel to undo the above
 - /test to check channel and role notifications
+
+## Setup:
+
+- Clone this repo
+- Add a config.json to root direcrtory with the bot token
+  ![alt text](https://i.imgur.com/FmXVOVS.png)
+- Run with /node .
