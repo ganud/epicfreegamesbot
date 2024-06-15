@@ -7,6 +7,13 @@ const sqlite3 = require("sqlite3").verbose();
 const { postGames } = require("./postGames");
 const schedule = require("node-schedule");
 
+// Recurring every Thursday, 15:10 UTC, when epic releases a new game
+let rule = new schedule.RecurrenceRule();
+rule.tz = "America/Sao_Paulo";
+rule.hour = 12;
+rule.minute = 10;
+rule.dayOfWeek = 4;
+
 const db = new sqlite3.Database(
   "./settings.db",
   sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
@@ -57,9 +64,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const guildId = interaction.guildId;
 
-    // Cancel schedule when removechannel is run
+    // Cancel schedule for the guild that ran removeChannel
     if (interaction.commandName === "removechannel") {
-      for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
+      schedule.cancelJob(guildId);
     }
 
     // Re-update scheduler after every setchannel
@@ -69,9 +76,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         [],
         (err, rows) => {
           if (err) return console.error(err.message);
-          for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
-          // Post games every Thursday, 15:10 UTC
-          schedule.scheduleJob("10 15 * * 4", function () {
+          // Clear existing scheduled pings for the existing guild
+          schedule.cancelJob(guildId);
+          // Re-add that schedule with the new channel
+          schedule.scheduleJob(guildId, rule, function () {
             // Ping a role if it exists
             if (rows[0].role_id !== null) {
               interaction.channel.send("<@&" + rows[0].role_id + ">");
@@ -92,11 +100,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         [],
         (err, rows) => {
           if (err) return console.error(err.message);
-          for (const job in schedule.scheduledJobs) schedule.cancelJob(job); // Clear existing scheduled pings
-          // Post games every Thursday, 15:10 UTC
+          schedule.cancelJob(guildId);
           if (rows[0].channel_id !== null) {
-            schedule.scheduleJob("10 15 * * 4", function () {
-              // Ping a role if it exists
+            schedule.scheduleJob(guildId, rule, function () {
+              // Ping a role alongside the notification if it exists
               if (interaction.role_id !== null) {
                 client.channels.cache
                   .get(rows[0].channel_id)
@@ -140,9 +147,9 @@ client.once(Events.ClientReady, async (readyClient) => {
         } else {
           // Check for saved channel if exists
           if (rows[0].channel_id !== null) {
-            // Post games every Thursday, 15:10 UTC
-            schedule.scheduleJob("10 15 * * 4", function () {
+            schedule.scheduleJob(guildId, rule, function () {
               // Ping a role if it exists
+              console.log("run");
               if (rows[0].role_id !== null) {
                 client.channels.cache
                   .get(rows[0].channel_id)
